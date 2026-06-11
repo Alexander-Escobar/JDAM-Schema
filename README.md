@@ -95,19 +95,14 @@ Evitar escribir manualmente:
 
 
 Todo el sistema se describe desde un único archivo JDAM.
-
+```text
 JDAM
-
  ├─ Database  
- 
  ├─ API  
- 
  ├─ UI  
- 
  ├─ Security  
- 
  └─ Business Rules  
- 
+``` 
 
 
 JDAM está diseñado para ser consumido por motores como:
