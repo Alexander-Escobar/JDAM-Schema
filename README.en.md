@@ -1,9 +1,9 @@
 <p align="right">
   <a href="./README.md">
-    <img src="https://img.shields.io/badge/ðŸ‡ªðŸ‡¸-EspaÃ±ol-red" alt="EspaÃ±ol">
+    <img src="https://img.shields.io/badge/🇪🇸-Español-red" alt="Español">
   </a>
   <a href="./README.en.md">
-    <img src="https://img.shields.io/badge/ðŸ‡ºðŸ‡¸-English-blue" alt="English">
+    <img src="https://img.shields.io/badge/🇺🇸-English-blue" alt="English">
   </a>
 </p>
 
@@ -54,13 +54,13 @@ JDAM eliminates this duplication by centralizing application definitions into a 
 
 ```text
 JDAM Model
-     â”?
-     â”œâ”€â”€ Database Structure
-     â”œâ”€â”€ API Definition
-     â”œâ”€â”€ Security Rules
-     â”œâ”€â”€ UI Metadata
-     â”œâ”€â”€ Validation Rules
-     â””â”€â”€ Business Pipelines
+     ┿
+     ├── Database Structure
+     ├── API Definition
+     ├── Security Rules
+     ├── UI Metadata
+     ├── Validation Rules
+     └── Business Pipelines
 ```
 
 ---
