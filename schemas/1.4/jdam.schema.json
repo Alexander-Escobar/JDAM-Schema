@@ -1,0 +1,621 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.4.0",
+  "type": "object",
+
+  "required": ["application", "dbprovider", "models"],
+
+  "properties": {
+
+    "application": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "description": "Application name (required)"
+        },
+        "security": {
+          "type": "object",
+          "required": ["types"],
+          "properties": {
+            "types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["jwt", "apiKey", "basic", "oauth2"]
+              },
+              "uniqueItems": true,
+              "minItems": 1,
+              "description": "Allowed security types"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "dbprovider": {
+      "type": "object",
+	  "minProperties": 1,
+      "properties": {
+        "oracle": { "$ref": "#/properties/dbprovider/$defs/dbproviderMapping" },
+        "mysql": { "$ref": "#/properties/dbprovider/$defs/dbproviderMapping" },
+        "mariadb": { "$ref": "#/properties/dbprovider/$defs/dbproviderMapping" },
+        "postgresql": { "$ref": "#/properties/dbprovider/$defs/dbproviderMapping" }
+      },
+      "additionalProperties": false,
+
+      "$defs": {
+        "dbproviderMapping": {
+          "type": "object",
+          "required": ["string","int","float","boolean","uuid","date","time","datetime"],
+          "properties": {
+            "string": { "type": "string" },
+            "int": { "type": "string" },
+            "float": { "type": "string" },
+            "boolean": { "type": "string" },
+            "uuid": { "type": "string" },
+            "date": { "type": "string" },
+            "time": { "type": "string" },
+            "datetime": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+
+    "models": {
+      "type": "object",
+      "properties": {
+        "tables": {
+          "type": "array",
+		  "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "table", "title", "columns"],
+
+            "properties": {
+
+              "name": { "type": "string" },
+              "table": { "type": "string" },
+              "title": {
+                "type": "string",
+                "description": "Form or UI display name"
+              },
+
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "description": { "type": "string" },
+
+                  "toolbar": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["id", "label", "action"],
+                      "properties": {
+
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier of the button"
+                        },
+
+                        "label": {
+                          "type": "string"
+                        },
+
+                        "icon": {
+                          "type": "string",
+                          "description": "CSS class (e.g. FontAwesome)"
+                        },
+
+                        "action": {
+                          "type": "object",
+                          "required": ["type", "method", "fields", "endpoint"],
+                          "properties": {
+
+                            "type": {
+                              "type": "string",
+                              "enum": ["api"]
+                            },
+
+                            "method": {
+                              "type": "string",
+                              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+                            },
+
+                            "fields": {
+                              "type": "array",
+                              "minItems": 1,
+                              "items": { "type": "string" },
+                              "description": "List of columns to include in request payload. At least one field must be defined."
+                            },
+
+                            "endpoint": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+
+                },
+                "additionalProperties": true
+              },
+
+              "api": {
+                "type": "object",
+                "required": ["alias","GET","POST","PUT","PATCH","DELETE"],
+                "properties": {
+                  "alias": { "type": "string", "minLength": 3 },
+                  "GET": { "$ref": "#/$defs/apiMethod" },
+                  "POST": { "$ref": "#/$defs/apiMethod" },
+                  "PUT": { "$ref": "#/$defs/apiMethod" },
+                  "PATCH": { "$ref": "#/$defs/apiMethod" },
+                  "DELETE": { "$ref": "#/$defs/apiMethod" }
+                },
+                "additionalProperties": false
+              },
+
+              "constraints": {
+                "type": "object",
+                "properties": {
+                  "primary": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "unique": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  },
+                  "foreign_keys": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["columns", "references"],
+                      "properties": {
+                        "columns": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "references": {
+                          "type": "object",
+                          "required": ["table", "columns"],
+                          "properties": {
+                            "table": { "type": "string" },
+                            "columns": {
+                              "type": "array",
+                              "items": { "type": "string" }
+                            }
+                          }
+                        },
+                        "onUpdate": {
+                          "type": "string",
+                          "enum": ["CASCADE", "RESTRICT", "SET NULL", "NO ACTION"]
+                        },
+                        "onDelete": {
+                          "type": "string",
+                          "enum": ["CASCADE", "RESTRICT", "SET NULL", "NO ACTION"]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+
+              "pipelines": {
+                "type": "object",
+                "description": "Execution pipelines for backend and frontend lifecycle",
+                "properties": {
+
+                  "backend": {
+                    "type": "object",
+                    "properties": {
+                      "pre": {
+                        "type": "object",
+                        "properties": {
+                          "POST": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "PUT": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "PATCH": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "DELETE": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } }
+                        },
+                        "additionalProperties": false
+                      },
+                      "post": {
+                        "type": "object",
+                        "properties": {
+                          "POST": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "PUT": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "PATCH": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "DELETE": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+
+                  "frontend": {
+                    "type": "object",
+                    "properties": {
+                      "pre": {
+                        "type": "object",
+                        "properties": {
+                          "create": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "update": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "delete": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } }
+                        },
+                        "additionalProperties": false
+                      },
+                      "post": {
+                        "type": "object",
+                        "properties": {
+                          "create": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "update": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } },
+                          "delete": { "type": "array", "items": { "$ref": "#/$defs/pipelineStep" } }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+
+                },
+                "additionalProperties": false
+              },
+
+              "columns": {
+                "type": "array",
+				"minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["col", "db", "validation", "UI"],
+
+                  "properties": {
+
+                    "col": { "type": "string" },
+
+                    "db": {
+                      "type": "object",
+                      "required": ["type"],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["string","int","float","boolean","uuid","date","time","datetime"]
+                        },
+                        "length": { "type": "number" },
+                        "required": { "type": "boolean" }
+                      }
+                    },
+
+                    "validation": {
+                      "type": "object",
+                      "properties": {
+                        "allowNoEdit": { "type": "boolean" },
+                        "enum": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "minLength": { "type": "number" }
+                      },
+                      "additionalProperties": false
+                    },
+
+                    "UI": {
+                      "type": "object",
+                      "required": ["control"],
+                      "properties": {
+
+                        "label": { "type": "string" },
+
+                        "placeholder": {
+                          "type": "string",
+                          "description": "Hint text displayed in input controls"
+                        },
+
+                        "control": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 2,
+
+                          "oneOf": [
+
+                            { "items": [{ "const": "text" }, { "type": "object" }] },
+
+                            {
+                              "items": [
+                                { "const": "textarea" },
+                                {
+                                  "type": "object",
+                                  "required": ["rows"],
+                                  "properties": {
+                                    "rows": { "type": "integer", "minimum": 1 }
+                                  }
+                                }
+                              ]
+                            },
+
+                            { "items": [{ "const": "hidden" }, { "type": "object" }] },
+                            { "items": [{ "const": "checkbox" }, { "type": "object" }] },
+                            { "items": [{ "const": "number" }, { "type": "object" }] },
+                            { "items": [{ "const": "datetime" }, { "type": "object" }] },
+
+							{ "items": [{ "const": "select" }, { "type": "object",
+								  "required": ["dataSource"],
+								  "properties": {
+
+									"dataSource": {
+									  "type": "object",
+									  "required": ["type"],
+									  "properties": {
+
+										"type": {
+										  "type": "string",
+										  "enum": ["api", "static"],
+										  "description": "Defines the source type: API (dynamic) or static (inline list)."
+										},
+
+										"resource": {
+										  "type": "string",
+										  "description": "Target resource (table/API endpoint). Required when type = api."
+										},
+
+										"valueField": {
+										  "oneOf": [
+											{
+											  "type": "string",
+											  "description": "Single field used as the value."
+											},
+											{
+											  "type": "array",
+											  "items": { "type": "string" },
+											  "minItems": 1,
+											  "description": "Multiple fields used as a composite key."
+											}
+										  ]
+										},
+
+										"labelField": {
+										  "type": "string",
+										  "description": "Field used as display label."
+										},
+
+										"options": {
+										  "type": "array",
+										  "description": "Static options when type = static.",
+										  "minItems": 1,
+										  "items": {
+											"type": "object",
+											"required": ["value", "label"],
+											"properties": { "value": { "type": "string" }, "label": { "type": "string" }},
+											"additionalProperties": false
+										  }
+										},
+
+										"compositeKey": {
+										  "type": "object",
+										  "description": "Defines how composite keys are serialized into a single string value.",
+										  "properties": {
+											"separator": {
+											  "type": "string", 
+											  "default": "|", 
+											  "description": "Separator used to concatenate composite key values."
+											}
+										  },
+										  "required": ["separator"],
+										  "additionalProperties": false
+										},
+
+										"dependsOn": {
+										  "description": "Defines dependencies on other fields in the form for dynamic filtering.",
+										  "oneOf": [
+											{
+											  "type": "array",
+											  "items": { "type": "string" },
+											  "minItems": 1,
+											  "description": "Simple dependency: same field names in form and target resource."
+											},
+											{
+											  "type": "array",
+											  "items": {
+												"type": "object",
+												"required": ["field", "source"],
+												"properties": {
+												  "field": { "type": "string", "description": "Field in the target resource used for filtering." },
+												  "source": { "type": "string", "description": "Field in the current form providing the value." }
+												},
+												"additionalProperties": false
+											  },
+											  "minItems": 1,
+											  "description": "Explicit mapping between form fields and target resource fields."
+											}
+										  ]
+										}
+
+									  },
+
+									  "allOf": [
+										{
+										  "if": {
+											"properties": { "type": { "const": "api" } }
+										  },
+										  "then": { "required": ["resource", "valueField", "labelField"] }
+										},
+										{
+										  "if": {
+											"properties": { "type": { "const": "static" } }
+										  },
+										  "then": { "required": ["options"] }
+										}
+									  ],
+									  "additionalProperties": false
+									}
+								  },
+								  "additionalProperties": false
+								}
+							  ]
+							}
+
+
+                            { "items": [{ "const": "time" }, { "type": "object" }] },
+
+                            {
+                              "items": [
+                                { "const": "date" },
+                                {
+                                  "type": "object",
+                                  "required": ["min", "max", "default"],
+                                  "properties": {
+                                    "min": { "type": "string" },
+                                    "max": { "type": "string" },
+                                    "default": { "type": "string" }
+                                  }
+                                }
+                              ]
+                            },
+
+                            {
+                              "items": [
+                                { "const": "range" },
+                                {
+                                  "type": "object",
+                                  "required": ["min", "max"],
+                                  "properties": {
+                                    "min": { "type": "number" },
+                                    "max": { "type": "number" },
+                                    "step": { "type": "number" }
+                                  }
+                                }
+                              ]
+                            }
+
+                          ]
+                        },
+
+                        "mask": {
+                          "type": "string",
+                          "description": "Supports aliases: T12, T24, email, phone or custom patterns"
+                        },
+                        "toUpper": { "type": "boolean" },
+                        "toLower": { "type": "boolean" },
+                        "visible": { "type": "boolean" },
+                        "searchable": { "type": "boolean" }
+                      }
+                    }
+
+                  }
+                }
+              }
+
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+
+    "apiMethod": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "auth": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
+    "pipelineStep": {
+      "type": "object",
+      "required": ["module", "function", "args"],
+      "properties": {
+
+        "module": {
+          "type": "string",
+          "description": "Module file to load"
+        },
+
+        "function": {
+          "type": "string",
+          "description": "Function name to execute"
+        },
+
+        "args": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "List of fields from model.columns"
+        },
+
+        "onError": {
+          "type": "string",
+          "enum": ["fail", "continue", "ignore"],
+          "default": "fail",
+          "description": "Error handling strategy"
+        },
+
+        "abort": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stops pipeline execution on error"
+        },
+
+        "message": {
+          "type": "string",
+          "description": "Custom error message"
+        },
+
+        "code": {
+          "type": "string",
+          "description": "Application error code"
+        }
+
+      },
+      "additionalProperties": false
+    }
+
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "application": {
+            "required": ["security"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "models": {
+            "properties": {
+              "tables": {
+                "items": {
+                  "properties": {
+                    "api": {
+                      "properties": {
+                        "GET": { "required": ["enabled", "auth"] },
+                        "POST": { "required": ["enabled", "auth"] },
+                        "PUT": { "required": ["enabled", "auth"] },
+                        "PATCH": { "required": ["enabled", "auth"] },
+                        "DELETE": { "required": ["enabled", "auth"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
